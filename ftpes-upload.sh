@@ -2,12 +2,15 @@
 # Upload file to FTPES-server by /usr/bin/lftp utility
 # Started at 2019-05-06 02:26:34 MSK, for Debian 9.*
 
-USERNAME="..." # PASSWORD in ~/.netrc
-HOSTNAME="..."
-BASEDIR="/MyFQDN/"
+# .cfg constants:
+# USERNAME="..." # passwords in ~/.netrc
+# HOSTNAME="..."
+# BASEDIR="/MyFQDN/"
 
 SCRIPT=`/usr/bin/realpath "$0"` # or $BASH
 SCRIPTDIR=`/usr/bin/dirname "$SCRIPT"`
+
+. "$SCRIPTDIR"/ftpes-upload.cfg
 
 FILE="$1"
 if [ ! -r "$FILE" ]; then
@@ -52,15 +55,11 @@ fi
 
 ~/.lftprc
 
-set ssl:verify-certificate false
 set ftp:ssl-allow true
 set ftp:ssl-force true
-set ftp:ssl-protect-data true
-set ftp:ssl-protect-list true
-set ftp:ssl-protect-fxp true
+set ssl:verify-certificate false
 
 set cache:enable false
-set cmd:default-protocol "ftps"
 
 set xfer:log false
 set cmd:save-cwd-history no
@@ -75,3 +74,4 @@ set dns:fatal-timeout 3
 machine ... login ... password
 
 '
+
