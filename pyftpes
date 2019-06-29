@@ -1,0 +1,69 @@
+#!/usr/bin/python2.7
+# Upload file to FTPES-server by /usr/bin/lftp utility
+# FTP over explicit TLS/SSL in Python
+# Started at 2019-06-27 06:20:43 MSK, for Debian 9.*
+
+def _fst(a,v):
+	# Python 2.6+
+	return next(iter(a or []), v)
+
+def _nth(a,k,v):
+	return _fst(a[k:k+1],v)
+
+# Input data
+
+from sys import argv,exit
+argc = 0 if not argv else len(argv) # Python 2.5+
+if argc <= 1:
+	print """Command line utility for FTP over explicit TLS/SSL in Python
+Usage: ./ftpes.py cmd arg
+Commands:
+   l - NLST
+  ll - LIST"""
+	exit()
+cmd = _nth(argv,1,"")
+arg = _nth(argv,2,"")
+
+from netrc import netrc
+
+# Configuration parameters
+
+HOSTNAME = 'MyFQDN'
+PORT = 21
+nc = netrc()
+rc = nc.hosts.get(HOSTNAME)
+USERNAME = _fst(rc[:1][0:],"")
+PASSWORD = _fst(rc[:3][2:],"")
+REL = '/%s' % (HOSTNAME)
+
+from ftplib import FTP_TLS
+import ssl
+
+# FTP_TLS.ssl_version
+# Connection object
+# ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23) # default
+# ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+
+if 'ctx' in vars(__builtins__):
+	ftp = FTP_TLS(context=ctx)
+else:
+	ftp = FTP_TLS()
+ftp.connect(HOSTNAME,PORT)
+ftp.auth()
+ftp.login(USERNAME,PASSWORD)
+ftp.set_pasv(True)
+ftp.prot_p()
+
+# Does fn
+
+if cmd == "l":
+    REL = '/'.join([REL,arg])
+    fns = ftp.nlst(REL)
+    fns.sort()
+    print '\n'.join(fns)
+elif cmd == "ll":
+    REL = '/'.join([REL,arg])
+    ftp.cwd(REL)
+    ftp.retrlines('LIST')
+
+ftp.quit()
